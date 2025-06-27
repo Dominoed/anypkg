@@ -1,0 +1,32 @@
+{
+  "name": "anypkg",
+  "version": "0.9.4",
+  "description": "Universal Package Manager",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.anypkg.desktop",
+    "productName": "AnyPkg",
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
+  },
+  "devDependencies": {
+    "electron": "^27.1.0",
+    "electron-builder": "^24.13.3",
+    "electron-rebuild": "^3.2.9",
+    "node-gyp": "^11.2.0"
+  },
+  "dependencies": {
+    "node-pty": "0.11.0-beta20",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0"
+  }
+}
