@@ -390,12 +390,61 @@ window.onload = async () => {
     searchInput.type = 'text';
     searchInput.placeholder = 'Search packages...';
     searchInput.style.width = '90%';
-    searchInput.style.margin = '0.5em 0 0.5em 0';
+    searchInput.style.margin = '0.5em 0 0.2em 0';
     sidebar.appendChild(searchInput);
+    searchInput.addEventListener('input', () => filterAndDraw());
+
+    const resultsInfo = document.createElement('div');
+    resultsInfo.style.margin = '0 0 0.5em 0';
+    sidebar.appendChild(resultsInfo);
+
+    const navContainer = document.createElement('div');
+    navContainer.style.display = 'flex';
+    navContainer.style.gap = '0.3em';
+    navContainer.style.marginBottom = '0.5em';
+    sidebar.appendChild(navContainer);
+
+    const firstBtn = document.createElement('button');
+    firstBtn.textContent = '<<';
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '<';
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '>';
+    const lastBtn = document.createElement('button');
+    lastBtn.textContent = '>>';
+    navContainer.appendChild(firstBtn);
+    navContainer.appendChild(prevBtn);
+    navContainer.appendChild(nextBtn);
+    navContainer.appendChild(lastBtn);
+
+    let currentPage = 1;
+    const pageSize = 15;
+    let filteredPkgs = [];
+    let currentCategory = '';
+    let onlyInstalledFlag = false;
+
+    firstBtn.onclick = () => { currentPage = 1; drawPackages(filteredPkgs); };
+    prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; drawPackages(filteredPkgs); } };
+    nextBtn.onclick = () => { const m = Math.ceil(filteredPkgs.length / pageSize) || 1; if (currentPage < m) { currentPage++; drawPackages(filteredPkgs); } };
+    lastBtn.onclick = () => { currentPage = Math.ceil(filteredPkgs.length / pageSize) || 1; drawPackages(filteredPkgs); };
 
     function drawPackages(list) {
+      filteredPkgs = list;
+      const total = filteredPkgs.length;
+      const maxPage = Math.ceil(total / pageSize) || 1;
+      if (currentPage > maxPage) currentPage = maxPage;
+      const start = (currentPage - 1) * pageSize;
+      const end = Math.min(start + pageSize, total);
+
+      resultsInfo.textContent =
+        `Showing results ${total ? start + 1 : 0}-${end} of ${total}`;
+      firstBtn.disabled = currentPage === 1;
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === maxPage;
+      lastBtn.disabled = currentPage === maxPage;
+
       content.innerHTML = '';
-      list.forEach(pkg => {
+      filteredPkgs.slice(start, end).forEach(pkg => {
         const div = document.createElement('div');
         div.className = 'package-entry';
         div.style = 'margin:0.7em 0;padding:1em;border-radius:8px;';
@@ -444,7 +493,9 @@ window.onload = async () => {
       updateInstallSelectedButton();
     }
 
-    function filterAndDraw(catOrQuery = '', onlyInstalled = false) {
+    function filterAndDraw(catOrQuery = currentCategory, onlyInstalled = onlyInstalledFlag) {
+      currentCategory = catOrQuery || '';
+      onlyInstalledFlag = !!onlyInstalled;
       let filtered = [...allPkgs];
       if (onlyInstalled) filtered = filtered.filter(pkg => pkg.installed);
       else if (catOrQuery && catOrQuery !== 'All') {
@@ -452,6 +503,7 @@ window.onload = async () => {
       }
       const query = searchInput.value.trim();
       if (query.length > 0) filtered = filtered.filter(pkg => pkg.name.includes(query) || pkg.description.includes(query));
+      currentPage = 1;
       drawPackages(filtered);
     }
     filterAndDraw('');
